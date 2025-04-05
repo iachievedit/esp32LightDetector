@@ -1,0 +1,17 @@
+services:
+  questdb:
+    image: questdb/questdb:latest
+    container_name: questdb
+    volumes:
+      - questdb-data:/var/lib/questdb
+    ports:
+      - 8812:8812
+      - 9000:9000
+    environment:
+      - QDB_HTTP_ENABLED=true
+      - QDB_PG_ENABLED=true
+      - QDB_ILP_ENABLED=true
+      - QDB_HTTP_MIN_ENABLED=true
+
+volumes:
+  questdb-data:
