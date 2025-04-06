@@ -3,11 +3,18 @@
 #include <HTTPClient.h>
 #include <ESP32Ping.h>
 
+// TSL2591
+#include "Adafruit_TSL2591.h"
+#include "tsl2591.h"
+
 #include <Adafruit_NeoPixel.h>
 
 #include "UrlEncode.h"
 
 #include "config.h"
+
+Adafruit_TSL2591 tsl = Adafruit_TSL2591(2591); 
+
 
 #define PIN        12
 HTTPClient http;
@@ -47,11 +54,23 @@ void initWiFi() {
 
 void setup() {
   Serial.begin(115200);
+
+  if (tsl.begin()) 
+  {
+    Serial.println(F("Found a TSL2591 sensor"));
+  } 
+  else 
+  {
+    Serial.println(F("No sensor found ... check your wiring?"));
+  }
+
   initWiFi();
   configTime(0, 0, ntpServer);
 
   pixels.begin();
   
+  displaySensorDetails(tsl);
+  configureSensor(tsl);
   
 
 }
@@ -76,10 +95,14 @@ void loop() {
   Serial.print("Timestamp: ");
   Serial.println(timestamp);
 
-  long value = random(20000, 21001);  // upper bound is exclusive
-  Serial.println(value);
+  
+  float lux = advancedRead(tsl);
 
-  String query = "INSERT INTO readings (acquired_at, lux) VALUES ('" + String(timestamp) + "', "+ value +")";
+  Serial.print("Lux: ");
+  Serial.println(lux);
+  
+
+  String query = "INSERT INTO readings (acquired_at, lux) VALUES ('" + String(timestamp) + "', "+ lux +")";
   Serial.println(query);
   String urlEncodedQuery = String(questdbExec) + urlEncode(query);
 
